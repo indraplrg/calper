@@ -1,4 +1,6 @@
 import {
+  FNB_MENU_GROUPS,
+  PLAYSTATION_PACKAGE_GROUPS,
   findFnbMenuItem,
   findPlaystationPackage,
   priceToInput,
@@ -24,6 +26,7 @@ function createId(prefix) {
 export function createAdjustment(prefix = 'adjustment') {
   return {
     id: createId(prefix),
+    menuGroupId: '',
     catalogItemId: '',
     name: '',
     operator: '+',
@@ -57,6 +60,7 @@ export function createTransactionRecord(prefix) {
     id: createId(prefix),
     name: '',
     basePrice: '',
+    packageGroupId: '',
     packageId: '',
     status: isBilling ? 'active' : '',
     timeExtensions: [],
@@ -74,12 +78,14 @@ export function createInitialWorkspace() {
         id: 'billing-initial',
         name: '',
         basePrice: '',
+        packageGroupId: '',
         packageId: '',
         status: 'active',
         timeExtensions: [],
         adjustments: [
           {
             id: 'billing-adjustment-initial',
+            menuGroupId: '',
             catalogItemId: '',
             name: '',
             operator: '+',
@@ -102,12 +108,14 @@ export function createInitialWorkspace() {
         id: 'fnb-initial',
         name: '',
         basePrice: '',
+        packageGroupId: '',
         packageId: '',
         status: '',
         timeExtensions: [],
         adjustments: [
           {
             id: 'fnb-adjustment-initial',
+            menuGroupId: '',
             catalogItemId: '',
             name: '',
             operator: '+',
@@ -131,10 +139,18 @@ export function createInitialWorkspace() {
 function normalizeAdjustment(item, fallbackId) {
   const quantity = Number.parseInt(String(item?.quantity), 10)
   const catalogItem = findFnbMenuItem(item?.catalogItemId)
+  const menuGroup = FNB_MENU_GROUPS.find(
+    (group) => group.id === item?.menuGroupId,
+  )
   const hasManualValue = Boolean(item?.name || item?.amount)
 
   return {
     id: String(item?.id || fallbackId),
+    menuGroupId:
+      catalogItem?.groupId ||
+      (item?.catalogItemId === 'custom'
+        ? 'custom'
+        : menuGroup?.id || (hasManualValue ? 'custom' : '')),
     catalogItemId: catalogItem
       ? catalogItem.id
       : item?.catalogItemId === 'custom' || hasManualValue
@@ -224,6 +240,9 @@ function normalizeRecord(
       ? record.basePrice
       : ''
   const selectedPackage = findPlaystationPackage(record?.packageId)
+  const selectedGroup = PLAYSTATION_PACKAGE_GROUPS.find(
+    (group) => group.id === record?.packageGroupId,
+  )
 
   return {
     id: String(record?.id || fallbackId),
@@ -233,6 +252,9 @@ function normalizeRecord(
       (allowDepositMethods && selectedPackage
         ? priceToInput(selectedPackage.price)
         : ''),
+    packageGroupId: allowDepositMethods
+      ? selectedPackage?.groupId || selectedGroup?.id || ''
+      : '',
     packageId: allowDepositMethods
       ? selectedPackage
         ? selectedPackage.id

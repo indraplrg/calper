@@ -4,14 +4,17 @@ function AmountInput({
   label,
   placeholder = '0',
   readOnly = false,
+  disabled = false,
   compact = false,
 }) {
+  const isInactive = readOnly || disabled
+
   return (
     <div
       className={`flex min-w-0 items-center rounded-xl border border-ink/15 transition ${
         compact ? 'min-h-11' : 'min-h-12'
       } ${
-        readOnly
+        isInactive
           ? 'bg-[#edf0e8]'
           : 'bg-paper-light focus-within:border-accent focus-within:ring-3 focus-within:ring-accent/10'
       }`}
@@ -30,10 +33,11 @@ function AmountInput({
         autoCapitalize="none"
         spellCheck="false"
         readOnly={readOnly}
+        disabled={disabled}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className={`number-input min-w-0 flex-1 bg-transparent text-right font-bold text-ink outline-none placeholder:text-muted/40 read-only:text-muted ${
-          compact ? 'px-1.5 py-2 text-sm' : 'px-3 py-2.5 text-base'
+          compact ? 'px-1 py-2 text-sm' : 'px-3 py-2.5 text-base'
         }`}
         placeholder={placeholder}
         aria-label={label}

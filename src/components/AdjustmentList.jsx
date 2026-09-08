@@ -21,11 +21,22 @@ function AdjustmentList({
   onRemove,
   onUpdate,
 }) {
-  function selectMenuItem(itemId, catalogItemId) {
+  function selectMenuGroup(itemId, menuGroupId) {
+    onUpdate(itemId, {
+      menuGroupId,
+      catalogItemId: menuGroupId === 'custom' ? 'custom' : '',
+      name: '',
+      amount: '',
+      operator: '+',
+    })
+  }
+
+  function selectMenuItem(itemId, menuGroupId, catalogItemId) {
     const catalogItem = findFnbMenuItem(catalogItemId)
 
     if (catalogItem) {
       onUpdate(itemId, {
+        menuGroupId: catalogItem.groupId,
         catalogItemId,
         name: catalogItem.name,
         amount: priceToInput(catalogItem.price),
@@ -35,7 +46,8 @@ function AdjustmentList({
     }
 
     onUpdate(itemId, {
-      catalogItemId,
+      menuGroupId,
+      catalogItemId: '',
       name: '',
       amount: '',
       operator: '+',
@@ -65,75 +77,110 @@ function AdjustmentList({
       <div className="space-y-2.5">
         {items.map((item, index) => {
           const catalogItem = findFnbMenuItem(item.catalogItemId)
-          const isCustomItem = item.catalogItemId === 'custom'
-          const hasSelectedItem = Boolean(catalogItem || isCustomItem)
+          const selectedGroupId =
+            catalogItem?.groupId ||
+            (item.catalogItemId === 'custom'
+              ? 'custom'
+              : item.menuGroupId || '')
+          const selectedGroup = FNB_MENU_GROUPS.find(
+            (group) => group.id === selectedGroupId,
+          )
+          const isCustomItem = selectedGroupId === 'custom'
+          const hasSelectedItem = Boolean(
+            catalogItem ||
+              (isCustomItem &&
+                (String(item.name).trim() || String(item.amount).trim())),
+          )
 
           return (
             <div
               key={item.id}
-              className="rounded-2xl border border-ink/10 bg-[#f7f4ed] p-3"
+              className="rounded-2xl border border-ink/10 bg-[#f7f4ed] p-2 sm:p-3"
             >
               <div
-                className={`grid items-center gap-1.5 ${
+                className={`grid items-center gap-1 sm:gap-2 ${
                   items.length > 1
-                    ? 'grid-cols-[minmax(0,1fr)_5rem_2.5rem]'
-                    : 'grid-cols-[minmax(0,1fr)_5rem]'
+                    ? 'grid-cols-[4rem_minmax(0,1fr)_3.75rem_2rem] sm:grid-cols-[7rem_minmax(0,1fr)_6rem_2.5rem]'
+                    : 'grid-cols-[4rem_minmax(0,1fr)_3.75rem] sm:grid-cols-[7rem_minmax(0,1fr)_6rem]'
                 }`}
               >
                 <label className="min-w-0">
-                  <span className="sr-only">Pilih item {index + 1}</span>
+                  <span className="sr-only">Tipe item {index + 1}</span>
                   <select
-                    value={item.catalogItemId || ''}
+                    value={selectedGroupId}
                     onChange={(event) =>
-                      selectMenuItem(item.id, event.target.value)
+                      selectMenuGroup(item.id, event.target.value)
                     }
-                    className="min-h-11 w-full rounded-xl border border-ink/15 bg-paper-light px-2 text-xs font-bold text-ink outline-none transition focus:border-accent focus:ring-3 focus:ring-accent/10 sm:px-3 sm:text-sm"
+                    className="min-h-11 w-full rounded-xl border border-ink/15 bg-paper-light px-1 text-[0.68rem] font-bold text-ink outline-none transition focus:border-accent focus:ring-3 focus:ring-accent/10 sm:px-3 sm:text-sm"
                   >
-                    <option value="">Pilih makanan / minuman</option>
+                    <option value="">Pilih tipe</option>
                     {FNB_MENU_GROUPS.map((group) => (
-                      <optgroup key={group.id} label={group.label}>
-                        {group.items.map((menuItem) => (
-                          <option key={menuItem.id} value={menuItem.id}>
-                            {menuItem.name}
-                          </option>
-                        ))}
-                      </optgroup>
+                      <option key={group.id} value={group.id}>
+                        {group.label}
+                      </option>
                     ))}
-                    <option value="custom">Item lainnya / manual</option>
+                    <option value="custom">Manual</option>
                   </select>
                 </label>
+
+                {isCustomItem ? (
+                  <input
+                    type="text"
+                    value={item.name}
+                    onChange={(event) =>
+                      onUpdate(item.id, { name: event.target.value })
+                    }
+                    className="min-h-11 min-w-0 rounded-xl border border-ink/15 bg-paper-light px-1.5 text-xs font-semibold text-ink outline-none transition placeholder:font-normal placeholder:text-muted/55 focus:border-accent focus:ring-3 focus:ring-accent/10 sm:px-3 sm:text-sm"
+                    placeholder={namePlaceholder}
+                    aria-label={`Nama item manual ${index + 1}`}
+                  />
+                ) : (
+                  <label className="min-w-0">
+                    <span className="sr-only">Pilih menu {index + 1}</span>
+                    <select
+                      value={catalogItem?.id || ''}
+                      onChange={(event) =>
+                        selectMenuItem(
+                          item.id,
+                          selectedGroupId,
+                          event.target.value,
+                        )
+                      }
+                      disabled={!selectedGroup}
+                      className="min-h-11 w-full rounded-xl border border-ink/15 bg-paper-light px-1.5 text-xs font-bold text-ink outline-none transition focus:border-accent focus:ring-3 focus:ring-accent/10 disabled:cursor-not-allowed disabled:bg-ink/5 disabled:text-muted sm:px-3 sm:text-sm"
+                    >
+                      <option value="">
+                        {selectedGroup ? 'Pilih menu' : 'Pilih tipe dulu'}
+                      </option>
+                      {selectedGroup?.items.map((menuItem) => (
+                        <option key={menuItem.id} value={menuItem.id}>
+                          {menuItem.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+
                 <AmountInput
                   value={item.amount}
                   onChange={(value) => onUpdate(item.id, { amount: value })}
                   label={`Harga satuan item ${index + 1}`}
                   placeholder="-"
-                  readOnly={!isCustomItem}
+                  disabled={!isCustomItem}
                   compact
                 />
+
                 {items.length > 1 ? (
                   <button
                     type="button"
                     onClick={() => onRemove(item.id)}
-                    className="grid size-10 shrink-0 place-items-center rounded-xl text-muted transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500"
-                    aria-label={`Hapus penyesuaian ${index + 1}`}
+                    className="grid size-8 shrink-0 place-items-center rounded-xl text-muted transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 sm:size-10"
+                    aria-label={`Hapus item ${index + 1}`}
                   >
                     <TrashIcon className="size-4" />
                   </button>
                 ) : null}
               </div>
-
-              {isCustomItem && (
-                <input
-                  type="text"
-                  value={item.name}
-                  onChange={(event) =>
-                    onUpdate(item.id, { name: event.target.value })
-                  }
-                  className="mt-2 min-h-11 w-full rounded-xl border border-ink/15 bg-paper-light px-3 text-base font-semibold text-ink outline-none transition placeholder:font-normal placeholder:text-muted/55 focus:border-accent focus:ring-3 focus:ring-accent/10"
-                  placeholder={namePlaceholder}
-                  aria-label={`Nama item manual ${index + 1}`}
-                />
-              )}
 
               {hasSelectedItem && (
                 <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-ink/10 bg-paper-light px-3 py-2">

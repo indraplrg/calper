@@ -34,7 +34,7 @@ const variantContent = {
     nameLabel: 'TRX',
     namePlaceholder: 'Contoh: TRX 001',
     adjustmentTitle: 'Tambah pesanan',
-    adjustmentDescription: 'Masukkan harga satuan, lalu atur Qty sesuai jumlah pesanan.',
+    adjustmentDescription: 'Pilih tipe dan menu, lalu atur Qty sesuai jumlah pesanan.',
     adjustmentAddLabel: 'Tambah pesanan',
     adjustmentPlaceholder: 'Nama barang, contoh: Indomie goreng',
   },
@@ -206,6 +206,7 @@ function TransactionSection({
 
         {isBilling && (
           <PlaystationPackageField
+            packageGroupId={record.packageGroupId}
             packageId={record.packageId}
             basePrice={record.basePrice}
             onChange={onUpdate}

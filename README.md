@@ -7,11 +7,11 @@ Aplikasi rekap Billing dan F&B Order berbasis React, Vite, dan Tailwind CSS. Set
 - Section billing independen dengan nama yang dapat diedit.
 - Status Billing manual dengan kategori Booking, Aktif, dan Lunas.
 - Filter status Billing dengan jumlah session pada setiap kategori.
-- Dropdown paket PS5, Suite, VIP, dan PS4.
+- Dropdown jenis PS5, Suite, VIP, atau PS4 diikuti pilihan durasi dan harga paket.
 - Tambah jam menggunakan tarif paket atau harga manual jika tarif tidak tersedia.
 - Semua makanan dan minuman otomatis ditambahkan ke total tagihan.
 - Item makanan atau minuman manual untuk menu di luar katalog.
-- Dropdown katalog makanan dan minuman dengan harga otomatis dari price list.
+- Dropdown tipe Makanan/Minuman diikuti pilihan menu dan harga otomatis dari price list.
 - Pembayaran Cash dan QRIS, termasuk split bill.
 - Metode DP Cash dan DP QRIS pada menu Billing.
 - Ringkasan total tagihan, total diterima, kembalian, dan kurang bayar.
@@ -21,7 +21,7 @@ Aplikasi rekap Billing dan F&B Order berbasis React, Vite, dan Tailwind CSS. Set
 - Tampilan mobile-first untuk penggunaan frontliner.
 - Menu Billing dan F&B Order dengan data yang terpisah.
 - F&B Order menggunakan identitas TRX dan menghitung nominal dari daftar pesanan.
-- Menu Recap untuk total pemasukan Cash, QRIS, dan keseluruhan per hari.
+- Menu Recap untuk total Cash, QRIS, keseluruhan, Rental PS, dan Produk F&B per hari.
 - DP Cash dan DP QRIS otomatis dikelompokkan ke metode pembayaran terkait.
 - Recap menggunakan pemasukan bersih sehingga uang kembalian tidak ikut dihitung.
 - Dropdown pencarian terpisah untuk nama section Billing dan TRX F&B Order.

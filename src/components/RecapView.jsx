@@ -56,6 +56,25 @@ function RecapView({ billingSections, fnbOrders }) {
             {formatRupiah(recap.total)}
           </strong>
         </div>
+
+        <div className="mt-4 space-y-3 border-t border-[#29431f]/15 pt-4">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-semibold text-[#557044]">
+              Total rental PS
+            </span>
+            <strong className="number-display text-lg text-[#29431f]">
+              {formatRupiah(recap.rental)}
+            </strong>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-semibold text-[#557044]">
+              Total produk F&B
+            </span>
+            <strong className="number-display text-lg text-[#29431f]">
+              {formatRupiah(recap.fnb)}
+            </strong>
+          </div>
+        </div>
       </div>
 
       <p className="px-5 pb-5 text-xs leading-5 text-muted sm:px-6">

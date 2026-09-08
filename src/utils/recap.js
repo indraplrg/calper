@@ -45,12 +45,34 @@ export function calculateDailyRecap(
   fnbOrders,
   dateKey = getLocalDateKey(),
 ) {
-  const payments = [
-    ...billingSections.flatMap((record) =>
-      getNetPayments(record, record.basePrice),
-    ),
-    ...fnbOrders.flatMap((record) => getNetPayments(record, '')),
-  ]
+  const billingPayments = billingSections.flatMap((record) => {
+    const summary = calculateBilling(
+      record.basePrice,
+      record.adjustments,
+      record.payments,
+      record.timeExtensions,
+    )
+    const rentalDue =
+      summary.baseAmount +
+      summary.timeExtensionLines.reduce(
+        (total, extension) => total + extension.amount,
+        0,
+      )
+    const rentalRatio = summary.totalDue > 0 ? rentalDue / summary.totalDue : 0
+
+    return getNetPayments(record, record.basePrice).map((payment) => ({
+      ...payment,
+      source: 'billing',
+      rentalRatio,
+    }))
+  })
+  const fnbPayments = fnbOrders.flatMap((record) =>
+    getNetPayments(record, '').map((payment) => ({
+      ...payment,
+      source: 'fnb',
+    })),
+  )
+  const payments = [...billingPayments, ...fnbPayments]
 
   const totals = payments.reduce(
     (currentTotals, payment) => {
@@ -59,9 +81,16 @@ export function calculateDailyRecap(
       const amount = payment.netAmount
       if (cashMethods.has(payment.method)) currentTotals.cash += amount
       if (qrisMethods.has(payment.method)) currentTotals.qris += amount
+      if (payment.source === 'billing') {
+        const rentalAmount = Math.round(amount * payment.rentalRatio)
+        currentTotals.rental += rentalAmount
+        currentTotals.fnb += amount - rentalAmount
+      } else {
+        currentTotals.fnb += amount
+      }
       return currentTotals
     },
-    { cash: 0, qris: 0 },
+    { cash: 0, qris: 0, rental: 0, fnb: 0 },
   )
 
   return {

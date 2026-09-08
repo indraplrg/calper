@@ -3,17 +3,34 @@ import {
   findPlaystationPackage,
   priceToInput,
 } from '../data/catalog.js'
-import { formatRupiah } from '../utils/billing.js'
 import AmountInput from './AmountInput.jsx'
 
-function PlaystationPackageField({ packageId, basePrice, onChange }) {
+function PlaystationPackageField({
+  packageGroupId,
+  packageId,
+  basePrice,
+  onChange,
+}) {
   const selectedPackage = findPlaystationPackage(packageId)
+  const selectedGroupId = selectedPackage?.groupId || packageGroupId || ''
+  const selectedGroup = PLAYSTATION_PACKAGE_GROUPS.find(
+    (group) => group.id === selectedGroupId,
+  )
+
+  function selectGroup(nextGroupId) {
+    onChange({
+      packageGroupId: nextGroupId,
+      packageId: '',
+      basePrice: '',
+    })
+  }
 
   function selectPackage(nextPackageId) {
     const nextPackage = findPlaystationPackage(nextPackageId)
 
     if (nextPackage) {
       onChange({
+        packageGroupId: nextPackage.groupId,
         packageId: nextPackage.id,
         basePrice: priceToInput(nextPackage.price),
       })
@@ -21,6 +38,7 @@ function PlaystationPackageField({ packageId, basePrice, onChange }) {
     }
 
     onChange({
+      packageGroupId: selectedGroupId,
       packageId: nextPackageId,
       basePrice: '',
     })
@@ -28,45 +46,58 @@ function PlaystationPackageField({ packageId, basePrice, onChange }) {
 
   return (
     <div className="sm:col-span-2">
-      <label className="block">
-        <span className="mb-1.5 block text-xs font-black text-ink">
-          Paket PlayStation
-        </span>
-        <select
-          value={packageId || ''}
-          onChange={(event) => selectPackage(event.target.value)}
-          className="min-h-12 w-full rounded-xl border border-ink/15 bg-[#f7f4ed] px-3.5 text-base font-bold text-ink outline-none transition focus:border-accent focus:ring-3 focus:ring-accent/10"
-        >
-          <option value="">Pilih paket PS</option>
-          {PLAYSTATION_PACKAGE_GROUPS.map((group) => (
-            <optgroup key={group.id} label={group.label}>
-              {group.packages.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.duration} jam · {formatRupiah(item.price)}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-          <option value="custom">Harga manual / lainnya</option>
-        </select>
-      </label>
+      <span className="mb-1.5 block text-xs font-black text-ink">
+        Paket PlayStation
+      </span>
+      <div className="grid grid-cols-2 gap-2">
+        <label className="min-w-0">
+          <span className="sr-only">Jenis PlayStation</span>
+          <select
+            value={selectedGroupId}
+            onChange={(event) => selectGroup(event.target.value)}
+            className="min-h-12 w-full rounded-xl border border-ink/15 bg-[#f7f4ed] px-3 text-sm font-bold text-ink outline-none transition focus:border-accent focus:ring-3 focus:ring-accent/10 sm:text-base"
+          >
+            <option value="">Pilih jenis</option>
+            {PLAYSTATION_PACKAGE_GROUPS.map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.label}
+              </option>
+            ))}
+          </select>
+        </label>
 
-      {selectedPackage && (
-        <div className="mt-2 flex items-center justify-between rounded-xl border border-[#cbd9c3] bg-[#edf3e9] px-3.5 py-2.5 text-sm">
-          <span className="font-semibold text-[#557044]">
-            {selectedPackage.groupLabel} · {selectedPackage.duration} jam
-          </span>
-          <strong className="number-display text-ink">
-            {formatRupiah(selectedPackage.price)}
-          </strong>
-        </div>
-      )}
+        <label className="min-w-0">
+          <span className="sr-only">Durasi dan harga paket</span>
+          <select
+            value={selectedPackage?.id || (packageId === 'custom' ? 'custom' : '')}
+            onChange={(event) => selectPackage(event.target.value)}
+            disabled={!selectedGroup}
+            className="min-h-12 w-full rounded-xl border border-ink/15 bg-[#f7f4ed] px-3 text-sm font-bold text-ink outline-none transition focus:border-accent focus:ring-3 focus:ring-accent/10 disabled:cursor-not-allowed disabled:bg-ink/5 disabled:text-muted sm:text-base"
+          >
+            <option value="">
+              {selectedGroup ? 'Pilih paket' : 'Pilih jenis dulu'}
+            </option>
+            {selectedGroup?.packages.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.duration} jam · {priceToInput(item.price)}
+              </option>
+            ))}
+            {selectedGroup && <option value="custom">Harga manual</option>}
+          </select>
+        </label>
+      </div>
 
       {packageId === 'custom' && (
         <div className="mt-2">
           <AmountInput
             value={basePrice}
-            onChange={(value) => onChange({ packageId: 'custom', basePrice: value })}
+            onChange={(value) =>
+              onChange({
+                packageGroupId: selectedGroupId,
+                packageId: 'custom',
+                basePrice: value,
+              })
+            }
             label="Harga PlayStation manual"
             placeholder="Contoh: 15k"
           />
