@@ -90,7 +90,7 @@ function BillingSummary({
                   ? `${item.name} × ${item.quantity}`
                   : item.name
               }
-              sign={item.operator === '+' ? '+' : '−'}
+              sign="+"
               value={formatRupiah(item.amount)}
               muted
             />

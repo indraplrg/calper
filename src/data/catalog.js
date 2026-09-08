@@ -7,7 +7,7 @@ export const BILLING_STATUSES = [
 export const PLAYSTATION_PACKAGE_GROUPS = [
   {
     id: 'ps5-regular',
-    label: 'PS5 Regular',
+    label: 'PS5',
     packages: [
       { id: 'ps5-regular-1h', duration: 1, price: 15_000 },
       { id: 'ps5-regular-3h', duration: 3, price: 40_000 },
@@ -16,7 +16,7 @@ export const PLAYSTATION_PACKAGE_GROUPS = [
   },
   {
     id: 'ps5-suite',
-    label: 'PS5 Suite',
+    label: 'Suite',
     packages: [
       { id: 'ps5-suite-2h', duration: 2, price: 80_000 },
       { id: 'ps5-suite-3h', duration: 3, price: 110_000 },
@@ -26,7 +26,7 @@ export const PLAYSTATION_PACKAGE_GROUPS = [
   },
   {
     id: 'ps4-vip',
-    label: 'PS4 Pro VIP',
+    label: 'VIP',
     packages: [
       { id: 'ps4-vip-2h', duration: 2, price: 50_000 },
       { id: 'ps4-vip-3h', duration: 3, price: 70_000 },
@@ -36,7 +36,7 @@ export const PLAYSTATION_PACKAGE_GROUPS = [
   },
   {
     id: 'ps4-regular',
-    label: 'PS4 Regular',
+    label: 'PS4',
     packages: [
       { id: 'ps4-regular-1h', duration: 1, price: 10_000 },
       { id: 'ps4-regular-3h', duration: 3, price: 25_000 },

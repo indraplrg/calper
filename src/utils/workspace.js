@@ -144,7 +144,7 @@ function normalizeAdjustment(item, fallbackId) {
       typeof item?.name === 'string' && item.name
         ? item.name
         : catalogItem?.name || '',
-    operator: item?.operator === '-' ? '-' : '+',
+    operator: '+',
     amount:
       typeof item?.amount === 'string' && item.amount
         ? item.amount

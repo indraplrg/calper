@@ -73,25 +73,28 @@ function AdjustmentList({
               key={item.id}
               className="rounded-2xl border border-ink/10 bg-[#f7f4ed] p-3"
             >
-              <div className="flex items-center gap-2">
-                <span className="w-6 shrink-0 text-center text-[0.65rem] font-black text-muted">
-                  {String(index + 1).padStart(2, '0')}
-                </span>
-                <label className="min-w-0 flex-1">
+              <div
+                className={`grid items-center gap-1.5 ${
+                  items.length > 1
+                    ? 'grid-cols-[minmax(0,1fr)_5rem_2.5rem]'
+                    : 'grid-cols-[minmax(0,1fr)_5rem]'
+                }`}
+              >
+                <label className="min-w-0">
                   <span className="sr-only">Pilih item {index + 1}</span>
                   <select
                     value={item.catalogItemId || ''}
                     onChange={(event) =>
                       selectMenuItem(item.id, event.target.value)
                     }
-                    className="min-h-11 w-full rounded-xl border border-ink/15 bg-paper-light px-3 text-sm font-bold text-ink outline-none transition focus:border-accent focus:ring-3 focus:ring-accent/10"
+                    className="min-h-11 w-full rounded-xl border border-ink/15 bg-paper-light px-2 text-xs font-bold text-ink outline-none transition focus:border-accent focus:ring-3 focus:ring-accent/10 sm:px-3 sm:text-sm"
                   >
                     <option value="">Pilih makanan / minuman</option>
                     {FNB_MENU_GROUPS.map((group) => (
                       <optgroup key={group.id} label={group.label}>
                         {group.items.map((menuItem) => (
                           <option key={menuItem.id} value={menuItem.id}>
-                            {menuItem.name} · {formatRupiah(menuItem.price)}
+                            {menuItem.name}
                           </option>
                         ))}
                       </optgroup>
@@ -99,7 +102,15 @@ function AdjustmentList({
                     <option value="custom">Item lainnya / manual</option>
                   </select>
                 </label>
-                {items.length > 1 && (
+                <AmountInput
+                  value={item.amount}
+                  onChange={(value) => onUpdate(item.id, { amount: value })}
+                  label={`Harga satuan item ${index + 1}`}
+                  placeholder="-"
+                  readOnly={!isCustomItem}
+                  compact
+                />
+                {items.length > 1 ? (
                   <button
                     type="button"
                     onClick={() => onRemove(item.id)}
@@ -108,7 +119,7 @@ function AdjustmentList({
                   >
                     <TrashIcon className="size-4" />
                   </button>
-                )}
+                ) : null}
               </div>
 
               {isCustomItem && (
@@ -125,93 +136,65 @@ function AdjustmentList({
               )}
 
               {hasSelectedItem && (
-                <>
-                  <div className="mt-2 grid grid-cols-[7.25rem_minmax(0,1fr)] gap-2">
-                    <label>
-                      <span className="sr-only">
-                        Operator penyesuaian {index + 1}
+                <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-ink/10 bg-paper-light px-3 py-2">
+                  <div className="min-w-0">
+                    <p className="text-[0.6rem] font-black tracking-[0.12em] text-muted uppercase">
+                      Subtotal
+                    </p>
+                    <p className="number-display mt-0.5 truncate text-sm font-black text-ink">
+                      {formatRupiah(
+                        parseRupiah(item.amount) *
+                          parseQuantity(item.quantity),
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => changeQuantity(item, -1)}
+                      disabled={parseQuantity(item.quantity) <= 1}
+                      className="grid size-9 place-items-center rounded-lg border border-ink/15 bg-[#f1eee6] text-lg font-bold text-ink transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-35"
+                      aria-label={`Kurangi jumlah ${item.name || `item ${index + 1}`}`}
+                    >
+                      −
+                    </button>
+                    <label className="w-12 text-center">
+                      <span className="block text-[0.55rem] font-black tracking-wide text-muted uppercase">
+                        Qty
                       </span>
-                      <select
-                        value={item.operator}
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={item.quantity ?? '1'}
                         onChange={(event) =>
-                          onUpdate(item.id, { operator: event.target.value })
+                          onUpdate(item.id, {
+                            quantity: event.target.value
+                              .replace(/\D/g, '')
+                              .slice(0, 3),
+                          })
                         }
-                        className="min-h-12 w-full rounded-xl border border-ink/15 bg-paper-light px-3 text-base font-bold text-ink outline-none transition focus:border-accent focus:ring-3 focus:ring-accent/10"
-                      >
-                        <option value="+">+ Tambah</option>
-                        <option value="-">− Kurangi</option>
-                      </select>
-                    </label>
-                    <AmountInput
-                      value={item.amount}
-                      onChange={(value) =>
-                        onUpdate(item.id, { amount: value })
-                      }
-                      label={`Harga satuan penyesuaian ${index + 1}`}
-                      readOnly={Boolean(catalogItem)}
-                    />
-                  </div>
-
-                  <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-ink/10 bg-paper-light px-3 py-2">
-                    <div className="min-w-0">
-                      <p className="text-[0.6rem] font-black tracking-[0.12em] text-muted uppercase">
-                        Subtotal
-                      </p>
-                      <p className="number-display mt-0.5 truncate text-sm font-black text-ink">
-                        {formatRupiah(
-                          parseRupiah(item.amount) *
-                            parseQuantity(item.quantity),
-                        )}
-                      </p>
-                    </div>
-
-                    <div className="flex shrink-0 items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => changeQuantity(item, -1)}
-                        disabled={parseQuantity(item.quantity) <= 1}
-                        className="grid size-9 place-items-center rounded-lg border border-ink/15 bg-[#f1eee6] text-lg font-bold text-ink transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-35"
-                        aria-label={`Kurangi jumlah ${item.name || `item ${index + 1}`}`}
-                      >
-                        −
-                      </button>
-                      <label className="w-12 text-center">
-                        <span className="block text-[0.55rem] font-black tracking-wide text-muted uppercase">
-                          Qty
-                        </span>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          value={item.quantity ?? '1'}
-                          onChange={(event) =>
-                            onUpdate(item.id, {
-                              quantity: event.target.value
-                                .replace(/\D/g, '')
-                                .slice(0, 3),
-                            })
+                        onBlur={() => {
+                          if (!String(item.quantity ?? '').trim()) {
+                            onUpdate(item.id, { quantity: '1' })
                           }
-                          onBlur={() => {
-                            if (!String(item.quantity ?? '').trim()) {
-                              onUpdate(item.id, { quantity: '1' })
-                            }
-                          }}
-                          className="number-input w-full bg-transparent text-center text-base font-black text-ink outline-none"
-                          aria-label={`Jumlah ${item.name || `item ${index + 1}`}`}
-                        />
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => changeQuantity(item, 1)}
-                        disabled={parseQuantity(item.quantity) >= 999}
-                        className="grid size-9 place-items-center rounded-lg border border-ink bg-ink text-lg font-bold text-paper-light transition hover:bg-[#2a3732] disabled:cursor-not-allowed disabled:opacity-35"
-                        aria-label={`Tambah jumlah ${item.name || `item ${index + 1}`}`}
-                      >
-                        +
-                      </button>
-                    </div>
+                        }}
+                        className="number-input w-full bg-transparent text-center text-base font-black text-ink outline-none"
+                        aria-label={`Jumlah ${item.name || `item ${index + 1}`}`}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => changeQuantity(item, 1)}
+                      disabled={parseQuantity(item.quantity) >= 999}
+                      className="grid size-9 place-items-center rounded-lg border border-ink bg-ink text-lg font-bold text-paper-light transition hover:bg-[#2a3732] disabled:cursor-not-allowed disabled:opacity-35"
+                      aria-label={`Tambah jumlah ${item.name || `item ${index + 1}`}`}
+                    >
+                      +
+                    </button>
                   </div>
-                </>
+                </div>
               )}
             </div>
           )

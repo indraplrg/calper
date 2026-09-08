@@ -23,9 +23,9 @@ const variantContent = {
     nameLabel: 'Nama section',
     namePlaceholder: 'Contoh: PS 03 - Meja 2',
     summaryBaseLabel: 'Harga seharusnya',
-    adjustmentTitle: 'Penyesuaian tagihan',
-    adjustmentDescription: 'Tambahkan item atau koreksi, lalu atur Qty jika jumlahnya lebih dari satu.',
-    adjustmentAddLabel: 'Tambah penyesuaian',
+    adjustmentTitle: 'Tambahan makanan',
+    adjustmentDescription: 'Pilih makanan atau minuman, lalu atur Qty jika jumlahnya lebih dari satu.',
+    adjustmentAddLabel: 'Tambah makanan',
     adjustmentPlaceholder: 'Nama item, contoh: Indomie goreng',
   },
   fnb: {
@@ -245,7 +245,7 @@ function TransactionSection({
 
         <BillingSummary
           summary={summary}
-          title={isBilling ? 'Hasil rekap' : 'Total pembayaran'}
+          title={isBilling ? 'Pembayaran' : 'Total pembayaran'}
           baseLabel={
             selectedPackage
               ? `${selectedPackage.groupLabel} · ${selectedPackage.duration} jam`
@@ -254,7 +254,7 @@ function TransactionSection({
           showBaseLine={isBilling}
           emptyItemsText={
             isBilling
-              ? 'Belum ada penyesuaian tagihan.'
+              ? 'Belum ada tambahan makanan.'
               : 'Belum ada pesanan.'
           }
         />

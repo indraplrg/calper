@@ -120,15 +120,14 @@ export function calculateBilling(
       return {
         id: item.id,
         name: item.name.trim() || `Penyesuaian ${index + 1}`,
-        operator: item.operator,
+        operator: '+',
         quantity,
         unitAmount,
         amount: unitAmount * quantity,
       }
     })
   const adjustmentTotal = adjustmentLines.reduce(
-    (total, item) =>
-      total + (item.operator === '-' ? -item.amount : item.amount),
+    (total, item) => total + item.amount,
     0,
   )
   const totalDue = Math.max(
