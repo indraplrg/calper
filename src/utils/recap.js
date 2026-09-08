@@ -21,6 +21,7 @@ function getNetPayments(record, basePrice) {
     basePrice,
     record.adjustments,
     record.payments,
+    record.timeExtensions,
   ).totalDue
   let remainingChange = Math.max(0, totalPaid - totalDue)
 

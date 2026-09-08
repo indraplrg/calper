@@ -1,3 +1,9 @@
+import {
+  findFnbMenuItem,
+  findPlaystationPackage,
+  priceToInput,
+} from '../data/catalog.js'
+
 export const WORKSPACE_STORAGE_KEY = 'calper-workspace-v1'
 
 export function getLocalDateKey(date = new Date()) {
@@ -18,10 +24,20 @@ function createId(prefix) {
 export function createAdjustment(prefix = 'adjustment') {
   return {
     id: createId(prefix),
+    catalogItemId: '',
     name: '',
     operator: '+',
     amount: '',
     quantity: '1',
+  }
+}
+
+export function createTimeExtension(prefix = 'time-extension') {
+  return {
+    id: createId(prefix),
+    packageId: '',
+    hours: '',
+    amount: '',
   }
 }
 
@@ -35,10 +51,15 @@ export function createPayment(prefix = 'payment') {
 }
 
 export function createTransactionRecord(prefix) {
+  const isBilling = prefix === 'billing'
+
   return {
     id: createId(prefix),
     name: '',
     basePrice: '',
+    packageId: '',
+    status: isBilling ? 'active' : '',
+    timeExtensions: [],
     adjustments: [createAdjustment(`${prefix}-adjustment`)],
     payments: [createPayment(`${prefix}-payment`)],
   }
@@ -53,9 +74,13 @@ export function createInitialWorkspace() {
         id: 'billing-initial',
         name: '',
         basePrice: '',
+        packageId: '',
+        status: 'active',
+        timeExtensions: [],
         adjustments: [
           {
             id: 'billing-adjustment-initial',
+            catalogItemId: '',
             name: '',
             operator: '+',
             amount: '',
@@ -77,9 +102,13 @@ export function createInitialWorkspace() {
         id: 'fnb-initial',
         name: '',
         basePrice: '',
+        packageId: '',
+        status: '',
+        timeExtensions: [],
         adjustments: [
           {
             id: 'fnb-adjustment-initial',
+            catalogItemId: '',
             name: '',
             operator: '+',
             amount: '',
@@ -101,16 +130,57 @@ export function createInitialWorkspace() {
 
 function normalizeAdjustment(item, fallbackId) {
   const quantity = Number.parseInt(String(item?.quantity), 10)
+  const catalogItem = findFnbMenuItem(item?.catalogItemId)
+  const hasManualValue = Boolean(item?.name || item?.amount)
 
   return {
     id: String(item?.id || fallbackId),
-    name: typeof item?.name === 'string' ? item.name : '',
+    catalogItemId: catalogItem
+      ? catalogItem.id
+      : item?.catalogItemId === 'custom' || hasManualValue
+        ? 'custom'
+        : '',
+    name:
+      typeof item?.name === 'string' && item.name
+        ? item.name
+        : catalogItem?.name || '',
     operator: item?.operator === '-' ? '-' : '+',
-    amount: typeof item?.amount === 'string' ? item.amount : '',
+    amount:
+      typeof item?.amount === 'string' && item.amount
+        ? item.amount
+        : catalogItem
+          ? priceToInput(catalogItem.price)
+          : '',
     quantity:
       Number.isFinite(quantity) && quantity > 0
         ? String(Math.min(quantity, 999))
         : '1',
+  }
+}
+
+function normalizeTimeExtension(extension, fallbackId) {
+  const selectedPackage = findPlaystationPackage(extension?.packageId)
+  const hasManualValue = Boolean(extension?.hours || extension?.amount)
+
+  return {
+    id: String(extension?.id || fallbackId),
+    packageId: selectedPackage
+      ? selectedPackage.id
+      : extension?.packageId === 'custom' || hasManualValue
+        ? 'custom'
+        : '',
+    hours:
+      typeof extension?.hours === 'string' && extension.hours
+        ? extension.hours
+        : selectedPackage
+          ? String(selectedPackage.duration)
+          : '',
+    amount:
+      typeof extension?.amount === 'string' && extension.amount
+        ? extension.amount
+        : selectedPackage
+          ? priceToInput(selectedPackage.price)
+          : '',
   }
 }
 
@@ -146,14 +216,44 @@ function normalizeRecord(
     ? record.adjustments
     : []
   const payments = Array.isArray(record?.payments) ? record.payments : []
+  const timeExtensions = Array.isArray(record?.timeExtensions)
+    ? record.timeExtensions
+    : []
+  const savedBasePrice =
+    !clearBasePrice && typeof record?.basePrice === 'string'
+      ? record.basePrice
+      : ''
+  const selectedPackage = findPlaystationPackage(record?.packageId)
 
   return {
     id: String(record?.id || fallbackId),
     name: typeof record?.name === 'string' ? record.name : '',
     basePrice:
-      !clearBasePrice && typeof record?.basePrice === 'string'
-        ? record.basePrice
-        : '',
+      savedBasePrice ||
+      (allowDepositMethods && selectedPackage
+        ? priceToInput(selectedPackage.price)
+        : ''),
+    packageId: allowDepositMethods
+      ? selectedPackage
+        ? selectedPackage.id
+        : record?.packageId === 'custom' || savedBasePrice
+          ? 'custom'
+          : ''
+      : '',
+    status:
+      allowDepositMethods && ['booking', 'active', 'paid'].includes(record?.status)
+        ? record.status
+        : allowDepositMethods
+          ? 'active'
+          : '',
+    timeExtensions: allowDepositMethods
+      ? timeExtensions.map((extension, index) =>
+          normalizeTimeExtension(
+            extension,
+            `${fallbackId}-time-extension-${index + 1}`,
+          ),
+        )
+      : [],
     adjustments:
       adjustments.length > 0
         ? adjustments.map((item, index) =>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import AddSectionCard from './components/AddSectionCard.jsx'
 import AppHeader from './components/AppHeader.jsx'
+import BillingStatusFilter from './components/BillingStatusFilter.jsx'
 import DataMenu from './components/DataMenu.jsx'
 import RecapView from './components/RecapView.jsx'
 import SectionSearch from './components/SectionSearch.jsx'
@@ -37,6 +38,7 @@ function App() {
     billing: 'all',
     fnb: 'all',
   })
+  const [billingStatusFilter, setBillingStatusFilter] = useState('all')
   const content = menuContent[workspace.activeMenu]
   const isRecapMenu = workspace.activeMenu === 'recap'
   const records =
@@ -52,9 +54,15 @@ function App() {
     (record) => record.id === selectedRecord,
   )
   const activeFilter = hasSelectedRecord ? selectedRecord : 'all'
+  const statusFilteredRecords =
+    workspace.activeMenu === 'billing' &&
+    activeFilter === 'all' &&
+    billingStatusFilter !== 'all'
+      ? records.filter((record) => record.status === billingStatusFilter)
+      : records
   const visibleRecords =
     activeFilter === 'all'
-      ? records
+      ? statusFilteredRecords
       : records.filter((record) => record.id === activeFilter)
 
   function addRecord() {
@@ -68,6 +76,7 @@ function App() {
       ...currentRecords,
       [currentMenu]: id,
     }))
+    if (currentMenu === 'billing') setBillingStatusFilter('active')
 
     requestAnimationFrame(() => {
       const newRecord = document.getElementById(id)
@@ -107,6 +116,17 @@ function App() {
       ...currentRecords,
       [workspace.activeMenu]: recordId,
     }))
+    if (workspace.activeMenu === 'billing' && recordId !== 'all') {
+      setBillingStatusFilter('all')
+    }
+  }
+
+  function changeBillingStatusFilter(status) {
+    setBillingStatusFilter(status)
+    setSelectedRecords((currentRecords) => ({
+      ...currentRecords,
+      billing: 'all',
+    }))
   }
 
   function resetAllData() {
@@ -117,12 +137,14 @@ function App() {
     if (!confirmed) return false
     workspace.resetWorkspace()
     setSelectedRecords({ billing: 'all', fnb: 'all' })
+    setBillingStatusFilter('all')
     return true
   }
 
   function importAllData(importedWorkspace) {
     workspace.replaceWorkspace(importedWorkspace)
     setSelectedRecords({ billing: 'all', fnb: 'all' })
+    setBillingStatusFilter('all')
   }
 
   return (
@@ -183,6 +205,21 @@ function App() {
               value={activeFilter}
               onChange={changeRecordFilter}
             />
+
+            {workspace.activeMenu === 'billing' && (
+              <BillingStatusFilter
+                records={records}
+                value={billingStatusFilter}
+                onChange={changeBillingStatusFilter}
+              />
+            )}
+
+            {workspace.activeMenu === 'billing' &&
+              visibleRecords.length === 0 && (
+                <div className="rounded-2xl border border-dashed border-ink/20 bg-paper-light/55 px-5 py-8 text-center text-sm text-muted">
+                  Belum ada billing pada status ini.
+                </div>
+              )}
 
             {visibleRecords.map((record) => {
               const recordIndex = records.findIndex(

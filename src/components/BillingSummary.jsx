@@ -72,6 +72,16 @@ function BillingSummary({
             />
           )}
 
+          {summary.timeExtensionLines.map((extension) => (
+            <SummaryRow
+              key={extension.id}
+              label={extension.name}
+              sign="+"
+              value={formatRupiah(extension.amount)}
+              muted
+            />
+          ))}
+
           {summary.adjustmentLines.map((item) => (
             <SummaryRow
               key={item.id}

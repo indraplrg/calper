@@ -1,3 +1,5 @@
+import { findPlaystationPackage } from '../data/catalog.js'
+
 const rupiahFormatter = new Intl.NumberFormat('id-ID', {
   maximumFractionDigits: 0,
   useGrouping: true,
@@ -80,8 +82,35 @@ export function parseQuantity(value) {
   return Math.min(quantity, 999)
 }
 
-export function calculateBilling(basePrice, adjustments, payments) {
+export function calculateBilling(
+  basePrice,
+  adjustments,
+  payments,
+  timeExtensions = [],
+) {
   const baseAmount = parseRupiah(basePrice)
+  const timeExtensionLines = timeExtensions
+    .filter((extension) => String(extension.amount).trim())
+    .map((extension) => {
+      const selectedPackage = findPlaystationPackage(extension.packageId)
+      const parsedHours = Number.parseInt(String(extension.hours), 10)
+      const hours = Number.isFinite(parsedHours) && parsedHours > 0
+        ? parsedHours
+        : selectedPackage?.duration || 1
+
+      return {
+        id: extension.id,
+        name: selectedPackage
+          ? `Tambah ${hours} jam ${selectedPackage.groupLabel}`
+          : `Tambah ${hours} jam`,
+        hours,
+        amount: parseRupiah(extension.amount),
+      }
+    })
+  const timeExtensionTotal = timeExtensionLines.reduce(
+    (total, extension) => total + extension.amount,
+    0,
+  )
   const adjustmentLines = adjustments
     .filter((item) => String(item.amount).trim())
     .map((item, index) => {
@@ -102,7 +131,10 @@ export function calculateBilling(basePrice, adjustments, payments) {
       total + (item.operator === '-' ? -item.amount : item.amount),
     0,
   )
-  const totalDue = Math.max(0, baseAmount + adjustmentTotal)
+  const totalDue = Math.max(
+    0,
+    baseAmount + timeExtensionTotal + adjustmentTotal,
+  )
 
   const paymentTotals = payments.reduce(
     (totals, payment) => {
@@ -134,6 +166,7 @@ export function calculateBilling(basePrice, adjustments, payments) {
   const balance = totalPaid - totalDue
   const hasAnyInput =
     Boolean(String(basePrice).trim()) ||
+    timeExtensionLines.length > 0 ||
     adjustmentLines.length > 0 ||
     hasPayment
 
@@ -155,6 +188,7 @@ export function calculateBilling(basePrice, adjustments, payments) {
 
   return {
     baseAmount,
+    timeExtensionLines,
     adjustmentLines,
     totalDue,
     paymentBreakdown,

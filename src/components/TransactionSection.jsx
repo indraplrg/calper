@@ -1,14 +1,20 @@
+import {
+  BILLING_STATUSES,
+  findPlaystationPackage,
+} from '../data/catalog.js'
 import { calculateBilling } from '../utils/billing.js'
 import {
   createAdjustment,
   createPayment,
+  createTimeExtension,
   getLocalDateKey,
 } from '../utils/workspace.js'
 import AdjustmentList from './AdjustmentList.jsx'
-import AmountInput from './AmountInput.jsx'
 import BillingSummary from './BillingSummary.jsx'
 import { TrashIcon } from './Icons.jsx'
 import PaymentList from './PaymentList.jsx'
+import PlaystationPackageField from './PlaystationPackageField.jsx'
+import TimeExtensionList from './TimeExtensionList.jsx'
 
 const variantContent = {
   billing: {
@@ -16,9 +22,6 @@ const variantContent = {
     emptyName: 'Belum diberi nama',
     nameLabel: 'Nama section',
     namePlaceholder: 'Contoh: PS 03 - Meja 2',
-    priceLabel: 'Harga seharusnya',
-    priceAriaLabel: 'Harga yang seharusnya dibayar',
-    pricePlaceholder: '50.000',
     summaryBaseLabel: 'Harga seharusnya',
     adjustmentTitle: 'Penyesuaian tagihan',
     adjustmentDescription: 'Tambahkan item atau koreksi, lalu atur Qty jika jumlahnya lebih dari satu.',
@@ -48,10 +51,13 @@ function TransactionSection({
 }) {
   const content = variantContent[variant]
   const isBilling = variant === 'billing'
+  const selectedPackage = findPlaystationPackage(record.packageId)
+  const timeExtensions = record.timeExtensions || []
   const summary = calculateBilling(
     isBilling ? record.basePrice : '',
     record.adjustments,
     record.payments,
+    isBilling ? timeExtensions : [],
   )
 
   function addAdjustment() {
@@ -60,10 +66,10 @@ function TransactionSection({
     })
   }
 
-  function updateAdjustment(adjustmentId, field, value) {
+  function updateAdjustment(adjustmentId, changes) {
     onUpdate({
       adjustments: record.adjustments.map((item) =>
-        item.id === adjustmentId ? { ...item, [field]: value } : item,
+        item.id === adjustmentId ? { ...item, ...changes } : item,
       ),
     })
   }
@@ -72,6 +78,33 @@ function TransactionSection({
     onUpdate({
       adjustments: record.adjustments.filter(
         (item) => item.id !== adjustmentId,
+      ),
+    })
+  }
+
+  function addTimeExtension() {
+    onUpdate({
+      timeExtensions: [
+        ...timeExtensions,
+        createTimeExtension('time-extension'),
+      ],
+    })
+  }
+
+  function updateTimeExtension(extensionId, changes) {
+    onUpdate({
+      timeExtensions: timeExtensions.map((extension) =>
+        extension.id === extensionId
+          ? { ...extension, ...changes }
+          : extension,
+      ),
+    })
+  }
+
+  function removeTimeExtension(extensionId) {
+    onUpdate({
+      timeExtensions: timeExtensions.filter(
+        (extension) => extension.id !== extensionId,
       ),
     })
   }
@@ -155,19 +188,42 @@ function TransactionSection({
         {isBilling && (
           <label className="block min-w-0">
             <span className="mb-1.5 block text-xs font-black text-ink">
-              {content.priceLabel}
+              Status billing
             </span>
-            <AmountInput
-              value={record.basePrice}
-              onChange={(value) => onUpdate({ basePrice: value })}
-              label={content.priceAriaLabel}
-              placeholder={content.pricePlaceholder}
-            />
+            <select
+              value={record.status || 'active'}
+              onChange={(event) => onUpdate({ status: event.target.value })}
+              className="min-h-12 w-full rounded-xl border border-ink/15 bg-[#f7f4ed] px-3.5 text-base font-bold text-ink outline-none transition focus:border-accent focus:ring-3 focus:ring-accent/10"
+            >
+              {BILLING_STATUSES.map((status) => (
+                <option key={status.id} value={status.id}>
+                  {status.label}
+                </option>
+              ))}
+            </select>
           </label>
+        )}
+
+        {isBilling && (
+          <PlaystationPackageField
+            packageId={record.packageId}
+            basePrice={record.basePrice}
+            onChange={onUpdate}
+          />
         )}
       </div>
 
       <div className="space-y-5">
+        {isBilling && (
+          <TimeExtensionList
+            extensions={timeExtensions}
+            basePackageId={record.packageId}
+            onAdd={addTimeExtension}
+            onRemove={removeTimeExtension}
+            onUpdate={updateTimeExtension}
+          />
+        )}
+
         <AdjustmentList
           items={record.adjustments}
           title={content.adjustmentTitle}
@@ -190,7 +246,11 @@ function TransactionSection({
         <BillingSummary
           summary={summary}
           title={isBilling ? 'Hasil rekap' : 'Total pembayaran'}
-          baseLabel={content.summaryBaseLabel}
+          baseLabel={
+            selectedPackage
+              ? `${selectedPackage.groupLabel} · ${selectedPackage.duration} jam`
+              : content.summaryBaseLabel
+          }
           showBaseLine={isBilling}
           emptyItemsText={
             isBilling
