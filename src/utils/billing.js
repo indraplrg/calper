@@ -74,16 +74,29 @@ export function formatRupiah(value) {
   return `Rp ${rupiahFormatter.format(Math.round(value || 0))}`
 }
 
+export function parseQuantity(value) {
+  const quantity = Number.parseInt(String(value), 10)
+  if (!Number.isFinite(quantity) || quantity < 1) return 1
+  return Math.min(quantity, 999)
+}
+
 export function calculateBilling(basePrice, adjustments, payments) {
   const baseAmount = parseRupiah(basePrice)
   const adjustmentLines = adjustments
     .filter((item) => String(item.amount).trim())
-    .map((item, index) => ({
-      id: item.id,
-      name: item.name.trim() || `Penyesuaian ${index + 1}`,
-      operator: item.operator,
-      amount: parseRupiah(item.amount),
-    }))
+    .map((item, index) => {
+      const quantity = parseQuantity(item.quantity)
+      const unitAmount = parseRupiah(item.amount)
+
+      return {
+        id: item.id,
+        name: item.name.trim() || `Penyesuaian ${index + 1}`,
+        operator: item.operator,
+        quantity,
+        unitAmount,
+        amount: unitAmount * quantity,
+      }
+    })
   const adjustmentTotal = adjustmentLines.reduce(
     (total, item) =>
       total + (item.operator === '-' ? -item.amount : item.amount),

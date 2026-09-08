@@ -16,7 +16,13 @@ function createId(prefix) {
 }
 
 export function createAdjustment(prefix = 'adjustment') {
-  return { id: createId(prefix), name: '', operator: '+', amount: '' }
+  return {
+    id: createId(prefix),
+    name: '',
+    operator: '+',
+    amount: '',
+    quantity: '1',
+  }
 }
 
 export function createPayment(prefix = 'payment') {
@@ -53,6 +59,7 @@ export function createInitialWorkspace() {
             name: '',
             operator: '+',
             amount: '',
+            quantity: '1',
           },
         ],
         payments: [
@@ -76,6 +83,7 @@ export function createInitialWorkspace() {
             name: '',
             operator: '+',
             amount: '',
+            quantity: '1',
           },
         ],
         payments: [
@@ -92,11 +100,17 @@ export function createInitialWorkspace() {
 }
 
 function normalizeAdjustment(item, fallbackId) {
+  const quantity = Number.parseInt(String(item?.quantity), 10)
+
   return {
     id: String(item?.id || fallbackId),
     name: typeof item?.name === 'string' ? item.name : '',
     operator: item?.operator === '-' ? '-' : '+',
     amount: typeof item?.amount === 'string' ? item.amount : '',
+    quantity:
+      Number.isFinite(quantity) && quantity > 0
+        ? String(Math.min(quantity, 999))
+        : '1',
   }
 }
 

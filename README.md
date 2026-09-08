@@ -11,6 +11,8 @@ Aplikasi rekap Billing dan F&B Order berbasis React, Vite, dan Tailwind CSS. Set
 - Metode DP Cash dan DP QRIS pada menu Billing.
 - Ringkasan total tagihan, total diterima, kembalian, dan kurang bayar.
 - Input nominal menerima format `50000`, `50.000`, atau `50k`.
+- Keyboard nominal mendukung penulisan singkat seperti `10k` langsung dari HP.
+- Setiap item memiliki Qty dan subtotal otomatis dari harga satuan dikali jumlah.
 - Tampilan mobile-first untuk penggunaan frontliner.
 - Menu Billing dan F&B Order dengan data yang terpisah.
 - F&B Order menggunakan identitas TRX dan menghitung nominal dari daftar pesanan.

@@ -6,8 +6,9 @@ function AmountInput({ value, onChange, label, placeholder = '0' }) {
       </span>
       <input
         type="text"
-        inputMode="numeric"
+        inputMode="text"
         autoComplete="off"
+        autoCapitalize="none"
         spellCheck="false"
         value={value}
         onChange={(event) => onChange(event.target.value)}

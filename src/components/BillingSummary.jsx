@@ -75,7 +75,11 @@ function BillingSummary({
           {summary.adjustmentLines.map((item) => (
             <SummaryRow
               key={item.id}
-              label={item.name}
+              label={
+                item.quantity > 1
+                  ? `${item.name} × ${item.quantity}`
+                  : item.name
+              }
               sign={item.operator === '+' ? '+' : '−'}
               value={formatRupiah(item.amount)}
               muted
