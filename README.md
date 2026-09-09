@@ -21,7 +21,7 @@ Aplikasi rekap Billing dan F&B Order berbasis React, Vite, dan Tailwind CSS. Set
 - Tampilan mobile-first untuk penggunaan frontliner.
 - Menu Billing dan F&B Order dengan data yang terpisah.
 - F&B Order menggunakan identitas TRX dan menghitung nominal dari daftar pesanan.
-- Menu Recap untuk total Cash, QRIS, keseluruhan, Rental PS, dan Produk F&B per hari.
+- Menu Recap dengan rincian Cash/DP dan QRIS/DP, serta total keseluruhan per hari.
 - DP Cash dan DP QRIS otomatis dikelompokkan ke metode pembayaran terkait.
 - Recap menggunakan pemasukan bersih sehingga uang kembalian tidak ikut dihitung.
 - Dropdown pencarian terpisah untuk nama section Billing dan TRX F&B Order.

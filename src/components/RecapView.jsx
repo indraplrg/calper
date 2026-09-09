@@ -6,15 +6,30 @@ import {
 } from '../utils/recap.js'
 import { ChartIcon } from './Icons.jsx'
 
-function RecapRow({ label, value }) {
+function PaymentRecapRow({ label, value, details }) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-ink/10 py-4 last:border-b-0">
-      <span className="max-w-[60%] text-sm leading-5 font-semibold text-muted">
-        {label}
-      </span>
-      <strong className="number-display text-right text-lg tracking-tight text-ink">
-        {formatRupiah(value)}
-      </strong>
+    <div className="border-b border-ink/10 py-4 last:border-b-0">
+      <div className="flex items-start justify-between gap-4">
+        <span className="text-sm leading-5 font-semibold text-muted">
+          {label}
+        </span>
+        <strong className="number-display shrink-0 text-right text-lg tracking-tight text-ink">
+          {formatRupiah(value)}
+        </strong>
+      </div>
+      <div className="mt-2 space-y-1">
+        {details.map((detail) => (
+          <div
+            key={detail.label}
+            className="flex items-center justify-between gap-4 text-[0.7rem] leading-4 text-muted/70"
+          >
+            <span>{detail.label}</span>
+            <span className="number-display shrink-0 font-semibold">
+              {formatRupiah(detail.value)}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -42,8 +57,22 @@ function RecapView({ billingSections, fnbOrders }) {
       </div>
 
       <div className="px-4 py-2 sm:px-6">
-        <RecapRow label="Total uang masuk (Cash)" value={recap.cash} />
-        <RecapRow label="Total uang masuk (QRIS)" value={recap.qris} />
+        <PaymentRecapRow
+          label="Total uang masuk (Cash)"
+          value={recap.cash}
+          details={[
+            { label: 'DP Cash', value: recap.paymentBreakdown.dp_cash },
+            { label: 'Cash', value: recap.paymentBreakdown.cash },
+          ]}
+        />
+        <PaymentRecapRow
+          label="Total uang masuk (QRIS)"
+          value={recap.qris}
+          details={[
+            { label: 'DP QRIS', value: recap.paymentBreakdown.dp_qris },
+            { label: 'QRIS', value: recap.paymentBreakdown.qris },
+          ]}
+        />
       </div>
 
       <div className="m-3 mt-2 rounded-2xl bg-[#dcebcf] px-4 py-5 sm:m-4 sm:px-5">
@@ -56,30 +85,11 @@ function RecapView({ billingSections, fnbOrders }) {
             {formatRupiah(recap.total)}
           </strong>
         </div>
-
-        <div className="mt-4 space-y-3 border-t border-[#29431f]/15 pt-4">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-sm font-semibold text-[#557044]">
-              Total rental PS
-            </span>
-            <strong className="number-display text-lg text-[#29431f]">
-              {formatRupiah(recap.rental)}
-            </strong>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-sm font-semibold text-[#557044]">
-              Total produk F&B
-            </span>
-            <strong className="number-display text-lg text-[#29431f]">
-              {formatRupiah(recap.fnb)}
-            </strong>
-          </div>
-        </div>
       </div>
 
       <p className="px-5 pb-5 text-xs leading-5 text-muted sm:px-6">
-        Nominal Cash sudah dikurangi kembalian. DP Cash digabung ke total Cash
-        dan DP QRIS digabung ke total QRIS.
+        Nominal sudah dikurangi kembalian. Total Cash dan QRIS mencakup
+        pembayaran utama serta DP.
       </p>
     </section>
   )

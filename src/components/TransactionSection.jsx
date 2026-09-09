@@ -121,11 +121,9 @@ function TransactionSection({
               ...payment,
               [field]: value,
               receivedOn:
-                field === 'amount'
-                  ? String(value).trim()
-                    ? payment.receivedOn || getLocalDateKey()
-                    : ''
-                  : payment.receivedOn,
+                String(field === 'amount' ? value : payment.amount).trim()
+                  ? payment.receivedOn || getLocalDateKey()
+                  : '',
             }
           : payment,
       ),
