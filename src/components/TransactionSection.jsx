@@ -7,7 +7,6 @@ import {
   createAdjustment,
   createPayment,
   createTimeExtension,
-  getLocalDateKey,
 } from '../utils/workspace.js'
 import AdjustmentList from './AdjustmentList.jsx'
 import BillingSummary from './BillingSummary.jsx'
@@ -120,10 +119,6 @@ function TransactionSection({
           ? {
               ...payment,
               [field]: value,
-              receivedOn:
-                String(field === 'amount' ? value : payment.amount).trim()
-                  ? payment.receivedOn || getLocalDateKey()
-                  : '',
             }
           : payment,
       ),

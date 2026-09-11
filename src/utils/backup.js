@@ -1,26 +1,24 @@
-import { calculateRecapHistory } from './recap.js'
-import {
-  getLocalDateKey,
-  normalizeWorkspace,
-} from './workspace.js'
+import { normalizeWorkspace } from './workspace.js'
 
 const BACKUP_FORMAT = 'calper-workspace-backup'
 const BACKUP_VERSION = 1
 
-export function createWorkspaceBackup(workspace, exportedAt = new Date()) {
+export function createWorkspaceBackup(workspace) {
   const normalizedWorkspace = normalizeWorkspace(workspace)
 
   return {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
-    exportedAt: exportedAt.toISOString(),
-    exportedOn: getLocalDateKey(exportedAt),
     workspace: normalizedWorkspace,
-    recapHistory: calculateRecapHistory(
-      normalizedWorkspace.billingSections,
-      normalizedWorkspace.fnbOrders,
-    ),
   }
+}
+
+export function createBackupFilename(exportedAt = new Date()) {
+  const year = exportedAt.getFullYear()
+  const month = String(exportedAt.getMonth() + 1).padStart(2, '0')
+  const day = String(exportedAt.getDate()).padStart(2, '0')
+
+  return `calper-backup-${year}-${month}-${day}.json`
 }
 
 export function parseWorkspaceBackup(fileContent) {

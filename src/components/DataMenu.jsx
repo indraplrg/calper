@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import {
+  createBackupFilename,
   createWorkspaceBackup,
   parseWorkspaceBackup,
 } from '../utils/backup.js'
@@ -50,7 +51,7 @@ function DataMenu({ workspace, onImport, onReset }) {
     const downloadLink = document.createElement('a')
 
     downloadLink.href = downloadUrl
-    downloadLink.download = `calper-backup-${backup.exportedOn}.json`
+    downloadLink.download = createBackupFilename()
     document.body.appendChild(downloadLink)
     downloadLink.click()
     downloadLink.remove()

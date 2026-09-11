@@ -27,8 +27,8 @@ const menuContent = {
   },
   recap: {
     eyebrow: 'Menu Recap',
-    title: 'Recap hari ini',
-    description: 'Lihat total pemasukan Cash dan QRIS dari seluruh transaksi hari ini.',
+    title: 'Rekap pemasukan',
+    description: 'Lihat total pemasukan Cash dan QRIS dari seluruh transaksi.',
   },
 }
 

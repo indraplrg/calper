@@ -8,13 +8,6 @@ import {
 
 export const WORKSPACE_STORAGE_KEY = 'calper-workspace-v1'
 
-export function getLocalDateKey(date = new Date()) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
 function createId(prefix) {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return `${prefix}-${crypto.randomUUID()}`
@@ -49,7 +42,6 @@ export function createPayment(prefix = 'payment') {
     id: createId(prefix),
     method: 'cash',
     amount: '',
-    receivedOn: '',
   }
 }
 
@@ -98,7 +90,6 @@ export function createInitialWorkspace() {
             id: 'billing-payment-initial',
             method: 'cash',
             amount: '',
-            receivedOn: '',
           },
         ],
       },
@@ -128,7 +119,6 @@ export function createInitialWorkspace() {
             id: 'fnb-payment-initial',
             method: 'cash',
             amount: '',
-            receivedOn: '',
           },
         ],
       },
@@ -207,19 +197,11 @@ function normalizePayment(payment, fallbackId, allowDepositMethods) {
   const isDepositMethod =
     allowDepositMethods && depositMethods.has(payment?.method)
 
-  const amount = typeof payment?.amount === 'string' ? payment.amount : ''
-  const savedDate =
-    typeof payment?.receivedOn === 'string' &&
-    /^\d{4}-\d{2}-\d{2}$/.test(payment.receivedOn)
-      ? payment.receivedOn
-      : ''
-
   return {
     id: String(payment?.id || fallbackId),
     method:
       isBaseMethod || isDepositMethod ? payment.method : 'cash',
-    amount,
-    receivedOn: amount.trim() ? savedDate || getLocalDateKey() : '',
+    amount: typeof payment?.amount === 'string' ? payment.amount : '',
   }
 }
 

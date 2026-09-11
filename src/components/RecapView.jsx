@@ -1,9 +1,5 @@
 import { formatRupiah } from '../utils/billing.js'
-import {
-  calculateDailyRecap,
-  formatRecapDate,
-  getLocalDateKey,
-} from '../utils/recap.js'
+import { calculateRecap } from '../utils/recap.js'
 import { ChartIcon } from './Icons.jsx'
 
 function PaymentRecapRow({ label, value, details }) {
@@ -35,8 +31,7 @@ function PaymentRecapRow({ label, value, details }) {
 }
 
 function RecapView({ billingSections, fnbOrders }) {
-  const dateKey = getLocalDateKey()
-  const recap = calculateDailyRecap(billingSections, fnbOrders, dateKey)
+  const recap = calculateRecap(billingSections, fnbOrders)
 
   return (
     <section className="overflow-hidden rounded-[1.4rem] border border-ink/15 bg-paper-light shadow-[0_8px_26px_rgba(23,33,30,0.07),0_3px_0_rgba(23,33,30,0.13)]">
@@ -47,10 +42,10 @@ function RecapView({ billingSections, fnbOrders }) {
           </span>
           <div>
             <p className="text-[0.62rem] font-black tracking-[0.18em] text-paper-light/45 uppercase">
-              Pemasukan hari ini
+              Rekap pemasukan
             </p>
-            <h2 className="mt-1 font-display text-2xl font-semibold capitalize">
-              {formatRecapDate(dateKey)}
+            <h2 className="mt-1 font-display text-2xl font-semibold">
+              Seluruh transaksi
             </h2>
           </div>
         </div>
